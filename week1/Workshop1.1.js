@@ -1,3 +1,4 @@
+
 let Name =  "สมชาย"
 let age =  20
 let group =  "วิศวกรรมคอมพิวเตอร์"

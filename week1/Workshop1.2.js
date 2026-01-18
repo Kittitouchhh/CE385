@@ -4,6 +4,7 @@ Boolean = true
 Null = null 
 Undefined = undefined
 
+
 console.log("String type is",typeof String )
 console.log("Number type is",typeof Number)
 console.log("Boolean type is",typeof Boolean )
