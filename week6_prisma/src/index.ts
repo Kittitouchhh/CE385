@@ -136,15 +136,114 @@ app.get('/posts',async(req,res) => {
     }
 })
 
-app.post('/post',async(req,res) => {
-    const {title,content,authorId} = req.body
-    
+app.get('/post/:id',async(req,res) => {
+    const {id} =req.params
     try{
-        
-    }catch{
-
+        const postuser = await prisma.post.findUnique({
+            where:{
+                postid: id
+            }
+        });
+        res.status(200).json(postuser)
+    } catch(error) {
+        res.status(500).json({ error : "Failed to fetch Post"})
     }
 })
+
+app.post('/post',async(req,res) => {
+    const {title,content,published,authorId} = req.body
+    
+    if (!title || !authorId){
+        return res.status(400).json({
+            error:"Required Title and AuthorId"
+        });
+    }
+    try{
+        const existingUser = await prisma.user.findUnique({
+            where:{
+                Userid: authorId
+            }
+        });
+
+        if (!existingUser){
+            return res.status(404).json({
+                error : "Author not found"
+            });
+        }
+
+        const post = await prisma.post.create({
+            data: {
+                title,content,published:published ?? false,authorId
+            }
+        });
+
+        res.status(201).json({
+            message:"Post Created Successfully",
+            data: post 
+        });
+
+    }catch (error){
+        res.status(500).json({ error: "Failed to create post"})
+    }
+})
+
+app.put('/post/:id', async (req, res) => {
+  const { id } = req.params;
+  const { title, content, published } = req.body;
+
+  try {
+    const existingPost = await prisma.post.findUnique({
+      where: { postid: id }
+    });
+
+    if (!existingPost) {
+      return res.status(404).json({ message: "Post not found" });
+    }
+
+    const updatedPost = await prisma.post.update({
+      where: { postid: id },
+      data: {
+        title,
+        content,
+        published
+      }
+    });
+
+    res.status(200).json({
+      message: "Post updated successfully",
+      data: updatedPost
+    });
+
+  } catch (error) {
+    res.status(500).json({ error: "Failed to update post" });
+  }
+});
+
+
+app.delete('/post/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const existingPost = await prisma.post.findUnique({
+      where: { postid: id }
+    });
+
+    if (!existingPost) {
+      return res.status(404).json({ message: "Post not found" });
+    }
+
+    await prisma.post.delete({
+      where: { postid: id }
+    });
+
+    res.status(204).send();
+
+  } catch (error) {
+    res.status(500).json({ error: "Failed to delete post" });
+  }
+});
+
+
 
 app.listen(port,() => {
     console.log(`Server is running on http://localhost:${port}`);
